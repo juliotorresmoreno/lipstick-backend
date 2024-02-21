@@ -31,6 +31,11 @@ var StatusBadRequest = &HttpResponse{
 	Obj:    HttpError{Message: "Bad Request"},
 }
 
+var StatusNotFound = &HttpResponse{
+	Status: http.StatusNotFound,
+	Obj:    HttpError{Message: "Not Found"},
+}
+
 func (e *HttpResponse) Error() string {
 	return e.Obj.Message
 }

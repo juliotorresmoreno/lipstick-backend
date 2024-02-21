@@ -25,24 +25,25 @@ type Session struct {
 	User  *User  `json:"user"`
 }
 
-func ValidateSession(token string) (*Session, error) {
+func ValidateSession(token string) (*User, error) {
 	ctx := context.Background()
 	cmd := cache.DefaultClient.Get(ctx, "session-"+token)
 	email := cmd.Val()
 	if email == "" {
-		return &Session{}, StatusUnauthorized
+		return &User{}, StatusUnauthorized
 	}
 
 	conn := db.DefaultClient
 	user := &models.User{}
 	tx := conn.Select(SessionFields).First(user, "email = ? AND deleted_at IS NULL", email)
 	if tx.Error != nil {
-		return &Session{}, StatusInternalServerError
+		return &User{}, StatusInternalServerError
 	}
 
 	cache.DefaultClient.Set(ctx, "session-"+token, email, 24*time.Hour)
+	session := ParseSession(token, user)
 
-	return ParseSession(token, user), nil
+	return session.User, nil
 }
 
 func ParseSession(token string, user *models.User) *Session {

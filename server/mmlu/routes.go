@@ -22,10 +22,8 @@ func SetupAPIRoutes(r *gin.RouterGroup) {
 	r.GET("/:id", ai.findOne)
 }
 
-type Mmlus []Mmlu
-
 func (h *MMLURouter) find(c *gin.Context) {
-	mmlus := &Mmlus{}
+	mmlus := &models.Connections{}
 	err := Find(mmlus)
 	if err != nil {
 		utils.Response(c, err)
@@ -49,18 +47,9 @@ func Find(dest interface{}) error {
 	return nil
 }
 
-type Mmlu struct {
-	ID          uint   `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Feeling     string `json:"feeling"`
-	PhotoURL    string `json:"photo_url"`
-}
-
 func (h *MMLURouter) findOne(c *gin.Context) {
-
 	id, _ := strconv.Atoi(c.Param("id"))
-	mmlu := &Mmlu{}
+	mmlu := &models.Connection{}
 	err := FindOne(id, mmlu)
 
 	if err != nil {

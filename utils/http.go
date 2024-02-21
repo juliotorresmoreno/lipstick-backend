@@ -1,15 +1,13 @@
 package utils
 
 import (
+	"io"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juliotorresmoreno/tana-api/logger"
 )
 
-var log = logger.SetupLogger()
-
-func GetToken(c *gin.Context) {
+func GetToken(c *gin.Context) (string, error) {
 	token, _ := c.Cookie("token")
 	if token == "" {
 		token = c.Request.URL.Query().Get("token")
@@ -23,8 +21,24 @@ func GetToken(c *gin.Context) {
 	}
 
 	if token == "" {
-		log.Error("StatusUnauthorized")
-		Response(c, StatusUnauthorized)
-		return
+		return token, StatusUnauthorized
 	}
+	return token, nil
+}
+
+func Copy(dest gin.ResponseWriter, src io.Reader) (written int64, err error) {
+	for {
+		b := make([]byte, 64)
+		n, err := src.Read(b)
+		if n > 0 {
+			written += int64(n)
+			dest.Write(b[:n])
+			dest.Flush()
+		}
+
+		if err == io.EOF {
+			break
+		}
+	}
+	return written, nil
 }

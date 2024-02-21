@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"time"
 
 	"strings"
 
@@ -81,7 +82,19 @@ func (auth *AuthRouter) SignUp(c *gin.Context) {
 	if err != nil {
 		utils.Response(c, err)
 	}
-	c.JSON(200, session)
+
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    session.Token,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+
+	c.JSON(200, session.User)
 }
 
 type SignInPayload struct {
@@ -120,28 +133,27 @@ func (auth *AuthRouter) SignIn(c *gin.Context) {
 	if err != nil {
 		utils.Response(c, err)
 	}
-	c.JSON(200, session)
+
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    session.Token,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+
+	c.JSON(200, session.User)
 }
 
 func (auth *AuthRouter) Session(c *gin.Context) {
-	token, _ := c.Cookie("token")
-	if token == "" {
-		token = c.Request.URL.Query().Get("token")
-	}
-
-	if token == "" {
-		token = c.Request.Header.Get("authorization")
-	}
-	if len(token) > 7 && strings.ToLower(token[:6]) == "bearer" {
-		token = token[7:]
-	}
-
-	if token == "" {
-		log.Error("utils.StatusUnauthorized")
-		utils.Response(c, utils.StatusUnauthorized)
+	token, err := utils.GetToken(c)
+	if err != nil {
+		utils.Response(c, err)
 		return
 	}
-
 	session, err := utils.ValidateSession(token)
 	if err != nil {
 		utils.Response(c, err)
