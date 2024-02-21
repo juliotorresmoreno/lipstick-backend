@@ -7,11 +7,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juliotorresmoreno/tana-api/db"
 	"github.com/juliotorresmoreno/tana-api/logger"
 	"github.com/juliotorresmoreno/tana-api/models"
+	"github.com/juliotorresmoreno/tana-api/server/mmlu"
 	"github.com/juliotorresmoreno/tana-api/utils"
 )
 
@@ -56,28 +58,31 @@ func (h *ConversationRouter) generate(c *gin.Context) {
 		return
 	}
 
-	mmlu := &models.Mmlu{}
-	conn := db.DefaultClient
-	if tx := conn.Find(mmlu); tx.Error != nil {
-		log.Error("Error finding mmlu", tx.Error)
+	connectionID, _ := strconv.Atoi(c.Param("id"))
+	connection := &models.Connection{}
+	err = mmlu.FindOne(connectionID, connection)
+	if err != nil {
+		log.Error("Error finding connection", err)
 		utils.Response(c, utils.StatusInternalServerError)
 		return
 	}
 
-	if mmlu.ID == 0 {
-		log.Error("Mmlu not found", mmlu.ID)
+	if connection.ID == 0 {
+		log.Error("connection not found", connection.ID)
 		utils.Response(c, utils.StatusNotFound)
 		return
 	}
 
 	body := bytes.NewBufferString("")
 	json.NewEncoder(body).Encode(map[string]interface{}{
-		"title":  mmlu.Description,
-		"prompt": payload.Prompt,
+		"title":         connection.Description,
+		"prompt":        payload.Prompt,
+		"user_id":       session.ID,
+		"connection_id": connection.ID,
 	})
 
 	var aiUrl = os.Getenv("AI_URL")
-	conversation := fmt.Sprintf("conversation-%v-%v", session.ID, mmlu.ID)
+	conversation := fmt.Sprintf("conversation-%v-%v", session.ID, connection.ID)
 	url := aiUrl + "/conversation/" + conversation
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {

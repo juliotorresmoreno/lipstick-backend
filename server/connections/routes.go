@@ -16,15 +16,15 @@ func SetupAPIRoutes(r *gin.RouterGroup) {
 }
 
 func (h *ConnectionsRouter) find(c *gin.Context) {
-	mmlus := &models.Connections{}
-	err := mmlu.Find(mmlus)
+	connections := &models.Connections{}
+	err := mmlu.Find(connections)
 
 	if err != nil {
 		utils.Response(c, err)
 		return
 	}
-	for _, item := range *mmlus {
+	for _, item := range *connections {
 		item.Type = "bot"
 	}
-	c.JSON(200, mmlus)
+	c.JSON(200, connections)
 }

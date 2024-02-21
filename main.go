@@ -11,6 +11,7 @@ import (
 	"github.com/juliotorresmoreno/tana-api/logger"
 	"github.com/juliotorresmoreno/tana-api/middlewares"
 	"github.com/juliotorresmoreno/tana-api/server"
+	"github.com/juliotorresmoreno/tana-api/subscriptions"
 )
 
 func main() {
@@ -21,6 +22,8 @@ func main() {
 	logger.SetupLogrus()
 	cache.Init()
 	db.Init()
+
+	subscriptions.Setup()
 
 	r := gin.Default()
 	r.Use(middlewares.AuthMiddleware())
