@@ -7,9 +7,6 @@ import (
 
 func PDFToText(src string, dest string) error {
 	pdftotextArgs := []string{"-layout", src, dest}
-
-	fmt.Println("pdftotextArgs", pdftotextArgs)
-
 	cmd := exec.Command("/usr/bin/pdftotext", pdftotextArgs...)
 
 	err := cmd.Run()
