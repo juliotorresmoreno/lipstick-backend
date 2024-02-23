@@ -42,3 +42,11 @@ func Copy(dest gin.ResponseWriter, src io.Reader) (written int64, err error) {
 	}
 	return written, nil
 }
+
+func ParseBase64File(data string) (string, error) {
+	parts := strings.Split(data, ";base64,")
+	if len(parts) != 2 {
+		return "", StatusBadRequest
+	}
+	return parts[1], nil
+}
