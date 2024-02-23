@@ -7,6 +7,7 @@ import (
 	"github.com/juliotorresmoreno/tana-api/server/conversation"
 	"github.com/juliotorresmoreno/tana-api/server/events"
 	"github.com/juliotorresmoreno/tana-api/server/mmlu"
+	"github.com/juliotorresmoreno/tana-api/server/users"
 )
 
 func SetupAPIRoutes(r *gin.RouterGroup) {
@@ -15,4 +16,5 @@ func SetupAPIRoutes(r *gin.RouterGroup) {
 	connections.SetupAPIRoutes(r.Group("/connections"))
 	conversation.SetupAPIRoutes(r.Group("/conversation"))
 	events.SetupAPIRoutes(r.Group("/events"))
+	users.SetupAPIRoutes(r.Group("/users"))
 }

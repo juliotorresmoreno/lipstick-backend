@@ -24,6 +24,6 @@ type User struct {
 	DeletedAt      gorm.DeletedAt `gorm:"type:timestamptz"`
 }
 
-func (u *User) TableName() string {
+func (u User) TableName() string {
 	return tableName
 }

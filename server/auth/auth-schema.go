@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type SignUpValidator struct {
