@@ -6,8 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const tableName = "users"
-
 type User struct {
 	ID             uint           `gorm:"primaryKey"`
 	ValidationCode string         `gorm:"type:varchar(6)"`
@@ -29,5 +27,5 @@ type User struct {
 }
 
 func (u User) TableName() string {
-	return tableName
+	return "users"
 }

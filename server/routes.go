@@ -5,6 +5,7 @@ import (
 	"github.com/juliotorresmoreno/tana-api/server/auth"
 	"github.com/juliotorresmoreno/tana-api/server/connections"
 	"github.com/juliotorresmoreno/tana-api/server/conversation"
+	"github.com/juliotorresmoreno/tana-api/server/credentials"
 	"github.com/juliotorresmoreno/tana-api/server/events"
 	"github.com/juliotorresmoreno/tana-api/server/mmlu"
 	"github.com/juliotorresmoreno/tana-api/server/users"
@@ -17,4 +18,5 @@ func SetupAPIRoutes(r *gin.RouterGroup) {
 	conversation.SetupAPIRoutes(r.Group("/conversation"))
 	events.SetupAPIRoutes(r.Group("/events"))
 	users.SetupAPIRoutes(r.Group("/users"))
+	credentials.SetupAPIRoutes(r.Group("/credentials"))
 }

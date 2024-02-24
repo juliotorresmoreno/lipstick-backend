@@ -68,11 +68,12 @@ func (h *UsersRouter) findMe(c *gin.Context) {
 }
 
 type UpdateValidationErrors struct {
-	NameError     string `json:"name_error,omitempty"`
-	LastNameError string `json:"last_name_error,omitempty"`
-	PhoneError    string `json:"phone_error,omitempty"`
-	EmailError    string `json:"email_error,omitempty"`
-	PasswordError string `json:"password_error,omitempty"`
+	Name         string `json:"name,omitempty"`
+	LastName     string `json:"last_name,omitempty"`
+	Business     string `json:"business,omitempty"`
+	PositionName string `json:"position_name,omitempty"`
+	Url          string `json:"url,omitempty"`
+	Description  string `json:"description,omitempty"`
 }
 
 func (h *UsersRouter) updateMe(c *gin.Context) {
@@ -119,11 +120,12 @@ func (h *UsersRouter) updateMe(c *gin.Context) {
 			}
 		}
 		customErrors := UpdateValidationErrors{
-			NameError:     errorsMap["Name"],
-			LastNameError: errorsMap["LastName"],
-			PhoneError:    errorsMap["Phone"],
-			EmailError:    errorsMap["Email"],
-			PasswordError: errorsMap["Password"],
+			Name:         errorsMap["Name"],
+			LastName:     errorsMap["LastName"],
+			Business:     errorsMap["Business"],
+			PositionName: errorsMap["PositionName"],
+			Url:          errorsMap["Url"],
+			Description:  errorsMap["Description"],
 		}
 		c.JSON(http.StatusBadRequest, customErrors)
 		return
