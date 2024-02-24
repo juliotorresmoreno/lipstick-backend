@@ -86,9 +86,6 @@ func (h *EventsRouter) publish(c *gin.Context) {
 		return
 	}
 
-	pub := db.NewRedisClient()
-	defer pub.Close()
-
 	userId, _ := strconv.Atoi(c.Param("id"))
 	payload, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -102,7 +99,7 @@ func (h *EventsRouter) publish(c *gin.Context) {
 		Payload: string(payload),
 	}
 	b, _ := json.Marshal(evt)
-	pub.Publish(context.Background(), "events", string(b))
+	db.DefaultCache.Publish(context.Background(), "events", string(b))
 
 	c.String(http.StatusNoContent, "")
 }

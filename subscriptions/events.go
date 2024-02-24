@@ -14,7 +14,10 @@ import (
 var log = logger.SetupLogger()
 
 func Setup() {
-	rdb := db.NewRedisClient()
+	rdb, err := db.NewRedisClient()
+	if err != nil {
+		log.Fatal(err)
+	}
 	sub := rdb.Subscribe(context.Background(), "events")
 	go handleEvents(sub)
 }

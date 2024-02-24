@@ -25,16 +25,20 @@ func SetupAPIRoutes(r *gin.RouterGroup) {
 }
 
 type User struct {
-	ID         uint      `json:"id"`
-	Verified   bool      `json:"verified"`
-	Name       string    `json:"name"      validate:"omitempty,min=2,max=100"`
-	LastName   string    `json:"last_name" validate:"omitempty,min=2,max=100"`
-	Email      string    `json:"email"     validate:"omitempty,email"`
-	PhotoURL   string    `json:"photo_url"`
-	Phone      string    `json:"phone"     validate:"omitempty,min=7,max=15"`
-	CreationAt time.Time `json:"creation_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	DeletedAt  time.Time `json:"deleted_at"`
+	ID           uint       `json:"id"`
+	Verified     bool       `json:"verified"`
+	Name         string     `json:"name" validate:"omitempty,min=2,max=100"`
+	LastName     string     `json:"last_name" validate:"omitempty,min=2,max=100"`
+	Email        string     `json:"email" validate:"omitempty,email"`
+	PhotoURL     string     `json:"photo_url"`
+	Phone        string     `json:"phone" validate:"omitempty,min=7,max=15"`
+	Business     string     `json:"business"`
+	PositionName string     `json:"position_name"`
+	Url          string     `json:"url" validate:"omitempty,url"`
+	Description  string     `json:"description" validate:"max=1000"`
+	CreationAt   time.Time  `json:"creation_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	DeletedAt    *time.Time `json:"deleted_at"`
 }
 
 func (h *UsersRouter) findMe(c *gin.Context) {

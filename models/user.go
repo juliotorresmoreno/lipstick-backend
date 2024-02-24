@@ -18,6 +18,10 @@ type User struct {
 	Password       string         `gorm:"type:varchar(512);default:'';not null"`
 	PhotoURL       string         `gorm:"type:varchar(1000);default:'';nullable"`
 	Phone          string         `gorm:"type:varchar(15);default:'';unique"`
+	Business       string         `gorm:"type:varchar(100);default:'';nullable"`
+	PositionName   string         `gorm:"type:varchar(100);default:'';nullable"`
+	Url            string         `gorm:"type:varchar(1000);default:'';nullable"`
+	Description    string         `gorm:"type:varchar(1000);default:'';nullable"`
 	Rol            string         `gorm:"type:varchar(15);default:''"`
 	CreationAt     time.Time      `gorm:"type:timestamptz;default:CURRENT_TIMESTAMP"`
 	UpdatedAt      time.Time      `gorm:"type:timestamptz"`

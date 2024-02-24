@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/juliotorresmoreno/tana-api/cache"
 	"github.com/juliotorresmoreno/tana-api/db"
 	"github.com/juliotorresmoreno/tana-api/models"
 )
@@ -27,7 +26,7 @@ type Session struct {
 
 func ValidateSession(token string) (*User, error) {
 	ctx := context.Background()
-	cmd := cache.DefaultClient.Get(ctx, "session-"+token)
+	cmd := db.DefaultCache.Get(ctx, "session-"+token)
 	email := cmd.Val()
 	if email == "" {
 		return &User{}, StatusUnauthorized
@@ -40,7 +39,7 @@ func ValidateSession(token string) (*User, error) {
 		return &User{}, StatusInternalServerError
 	}
 
-	cache.DefaultClient.Set(ctx, "session-"+token, email, 24*time.Hour)
+	db.DefaultCache.Set(ctx, "session-"+token, email, 24*time.Hour)
 	session := ParseSession(token, user)
 
 	return session.User, nil
@@ -66,7 +65,7 @@ func MakeSession(user *models.User) (*Session, error) {
 		return &Session{}, StatusInternalServerError
 	}
 
-	cmd := cache.DefaultClient.Set(
+	cmd := db.DefaultCache.Set(
 		context.Background(),
 		"session-"+token,
 		user.Email, 24*time.Hour,

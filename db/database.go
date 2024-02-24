@@ -6,22 +6,35 @@ import (
 	"os"
 	"time"
 
-	logger2 "github.com/juliotorresmoreno/tana-api/logger"
+	"github.com/juliotorresmoreno/tana-api/logger"
+	"github.com/juliotorresmoreno/tana-api/models"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	logger_gorm "gorm.io/gorm/logger"
 )
 
-var applog = logger2.SetupLogger()
+var applog = logger.SetupLogger()
 var DefaultClient *gorm.DB
+var DefaultCache *redis.Client
 
-func Init() {
+func Setup() {
 	var err error
 	DefaultClient, err = NewClient()
 	if err == nil {
 		applog.Info("Connected to database")
 	} else {
 		applog.Panic("Failed conection to database")
+	}
+
+	DefaultClient.AutoMigrate(&models.User{})
+	DefaultClient.AutoMigrate(&models.Mmlu{})
+
+	DefaultCache, err = NewRedisClient()
+	if err == nil {
+		applog.Info("Connected to cache")
+	} else {
+		applog.Panic("Failed conection to cache")
 	}
 }
 
@@ -37,11 +50,11 @@ func NewClient() (*gorm.DB, error) {
 
 func newPostgresClient(dsn string, poolSize int) (*gorm.DB, error) {
 	config := &gorm.Config{
-		Logger: logger.New(
+		Logger: logger_gorm.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
-			logger.Config{
+			logger_gorm.Config{
 				SlowThreshold:             200 * time.Millisecond,
-				LogLevel:                  logger.Info,
+				LogLevel:                  logger_gorm.Info,
 				IgnoreRecordNotFoundError: true,
 				Colorful:                  true,
 			},

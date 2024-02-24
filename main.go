@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/juliotorresmoreno/tana-api/cache"
 	"github.com/juliotorresmoreno/tana-api/db"
 	"github.com/juliotorresmoreno/tana-api/logger"
 	"github.com/juliotorresmoreno/tana-api/middlewares"
@@ -20,9 +19,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	logger.SetupLogrus()
-	cache.Init()
-	db.Init()
-
+	db.Setup()
 	subscriptions.Setup()
 
 	r := gin.Default()
