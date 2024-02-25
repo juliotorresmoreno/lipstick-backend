@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -14,6 +15,7 @@ import (
 )
 
 func main() {
+	time.Local = time.UTC // default to UTC for all time values
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")

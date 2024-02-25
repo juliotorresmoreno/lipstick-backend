@@ -11,7 +11,7 @@ import (
 	"github.com/juliotorresmoreno/tana-api/utils"
 )
 
-var maxCredentials = 5
+var maxCredentials = 10
 var tablename = models.Credential{}.TableName()
 var log = logger.SetupLogger()
 

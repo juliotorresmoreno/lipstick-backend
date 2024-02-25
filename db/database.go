@@ -73,6 +73,8 @@ func newPostgresClient(dsn string, poolSize int) (*gorm.DB, error) {
 	}
 
 	sqlDB.SetMaxOpenConns(poolSize)
+	sqlDB.SetMaxIdleConns(poolSize)
+	sqlDB.Query("SET TIME ZONE 'UTC'")
 
 	return db, nil
 }
