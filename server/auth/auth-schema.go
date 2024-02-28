@@ -2,7 +2,7 @@ package auth
 
 import (
 	"errors"
-	"strings"
+	"regexp"
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
@@ -15,11 +15,6 @@ type SignUpValidator struct {
 func NewSignUpValidator() *SignUpValidator {
 	v := validator.New()
 	return &SignUpValidator{validator: v}
-}
-
-func PhoneValidation(fl validator.FieldLevel) bool {
-	phone := fl.Field().String()
-	return len(phone) == 10 && strings.HasPrefix(phone, "5")
 }
 
 func PasswordValidation(fl validator.FieldLevel) bool {
@@ -54,16 +49,22 @@ func PasswordValidation(fl validator.FieldLevel) bool {
 }
 
 type SignUpValidationErrors struct {
-	NameError     string `json:"name_error"`
-	LastNameError string `json:"last_name_error"`
-	PhoneError    string `json:"phone_error"`
-	EmailError    string `json:"email_error"`
-	PasswordError string `json:"password_error"`
+	NameError     string `json:"name"`
+	LastNameError string `json:"last_name"`
+	PhoneError    string `json:"phone"`
+	EmailError    string `json:"email"`
+	PasswordError string `json:"password"`
+}
+
+func isValidName(fl validator.FieldLevel) bool {
+	// Expresión regular para validar nombres
+	nameRegex := regexp.MustCompile(`^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$`)
+	return nameRegex.MatchString(fl.Field().String())
 }
 
 func (cv *SignUpValidator) ValidateSignUp(form *SignUpPayload) (SignUpValidationErrors, error) {
-	cv.validator.RegisterValidation("phone", PhoneValidation)
 	cv.validator.RegisterValidation("password", PasswordValidation)
+	cv.validator.RegisterValidation("validname", isValidName)
 
 	err := cv.validator.Struct(form)
 	if err != nil {

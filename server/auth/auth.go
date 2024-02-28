@@ -25,11 +25,11 @@ func SetupAUTHRoutes(r *gin.RouterGroup) {
 }
 
 type SignUpPayload struct {
-	Name     string `json:"name"`
-	LastName string `json:"last_name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
+	Name     string `json:"name" validate:"required,validname"`
+	LastName string `json:"last_name" validate:"required,validname"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+	Phone    string `json:"phone" validate:"max=15"`
 }
 
 var signUpValidator = NewSignUpValidator()
@@ -37,7 +37,7 @@ var signUpValidator = NewSignUpValidator()
 func (auth *AuthRouter) SignUp(c *gin.Context) {
 	payload := &SignUpPayload{}
 
-	err := c.Bind(payload)
+	err := c.ShouldBind(payload)
 	if err != nil {
 		utils.Response(c, utils.StatusBadRequest)
 		return

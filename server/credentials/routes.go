@@ -48,7 +48,9 @@ func (h *CredentialsRouter) find(c *gin.Context) {
 
 	credentials := make([]Credential, 0)
 	tx := conn.Table(tablename).
-		Where("user_id = ?", session.ID).
+		Where(models.Credential{
+			OwnerId: session.ID,
+		}).
 		Where("deleted_at is null").
 		Limit(maxCredentials).
 		Find(&credentials)
@@ -74,7 +76,9 @@ func (h *CredentialsRouter) findOne(c *gin.Context) {
 	credential := &Credential{}
 	tx := conn.Table(tablename).
 		Where("id = ?", c.Param("id")).
-		Where("user_id = ?", session.ID).
+		Where(models.Credential{
+			OwnerId: session.ID,
+		}).
 		Where("deleted_at is null").
 		First(credential)
 	if tx.Error != nil {
@@ -98,7 +102,9 @@ func (h *CredentialsRouter) create(c *gin.Context) {
 
 	count := int64(0)
 	tx := conn.Table(tablename).
-		Where("user_id = ?", session.ID).
+		Where(models.Credential{
+			OwnerId: session.ID,
+		}).
 		Where("deleted_at is null").
 		Count(&count)
 	if tx.Error != nil {
@@ -112,7 +118,7 @@ func (h *CredentialsRouter) create(c *gin.Context) {
 		return
 	}
 
-	apiSecret, _ := utils.GenerateRandomString(64)
+	apiSecret, _ := utils.GenerateRandomString(50)
 
 	credential := &models.Credential{
 		OwnerId:   session.ID,
