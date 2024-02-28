@@ -13,9 +13,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juliotorresmoreno/tana-api/db"
 	"github.com/juliotorresmoreno/tana-api/logger"
 	"github.com/juliotorresmoreno/tana-api/models"
-	"github.com/juliotorresmoreno/tana-api/server/mmlu"
 	"github.com/juliotorresmoreno/tana-api/utils"
 )
 
@@ -49,13 +49,7 @@ func generateRandomFileName(prefix, suffix string) string {
 }
 
 func (h *ConversationRouter) attach(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		utils.Response(c, err)
@@ -71,9 +65,14 @@ func (h *ConversationRouter) attach(c *gin.Context) {
 
 	connectionID, _ := strconv.Atoi(c.Param("id"))
 	connection := &models.Connection{}
-	err = mmlu.FindOne(connectionID, connection)
-	if err != nil {
-		log.Error("Error finding connection", err)
+	conn := db.DefaultClient
+
+	tx := conn.Where(&models.Connection{
+		OwnerId: session.ID,
+	}).First(connection, connectionID)
+
+	if tx.Error != nil {
+		log.Error("Error finding connection", tx.Error)
 		utils.Response(c, utils.StatusInternalServerError)
 		return
 	}
@@ -172,13 +171,7 @@ type GeneratePayload struct {
 }
 
 func (h *ConversationRouter) generate(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		utils.Response(c, err)
@@ -194,9 +187,12 @@ func (h *ConversationRouter) generate(c *gin.Context) {
 
 	connectionID, _ := strconv.Atoi(c.Param("id"))
 	connection := &models.Connection{}
-	err = mmlu.FindOne(connectionID, connection)
-	if err != nil {
-		log.Error("Error finding connection", err)
+	conn := db.DefaultClient
+	tx := conn.Where(&models.Connection{
+		OwnerId: session.ID,
+	}).First(connection, connectionID)
+	if tx.Error != nil {
+		log.Error("Error finding connection", tx.Error)
 		utils.Response(c, utils.StatusInternalServerError)
 		return
 	}
@@ -238,13 +234,7 @@ func (h *ConversationRouter) generate(c *gin.Context) {
 }
 
 func (h *ConversationRouter) findOne(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		utils.Response(c, err)
@@ -253,9 +243,12 @@ func (h *ConversationRouter) findOne(c *gin.Context) {
 
 	connectionID, _ := strconv.Atoi(c.Param("id"))
 	connection := &models.Connection{}
-	err = mmlu.FindOne(connectionID, connection)
-	if err != nil {
-		log.Error("Error finding connection", err)
+	conn := db.DefaultClient
+	tx := conn.Where(&models.Connection{
+		OwnerId: session.ID,
+	}).First(connection, connectionID)
+	if tx.Error != nil {
+		log.Error("Error finding connection", tx.Error)
 		utils.Response(c, utils.StatusInternalServerError)
 		return
 	}

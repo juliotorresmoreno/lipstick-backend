@@ -105,13 +105,7 @@ func (h *EventsRouter) publish(c *gin.Context) {
 }
 
 func (h *EventsRouter) subscribe(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		utils.Response(c, err)

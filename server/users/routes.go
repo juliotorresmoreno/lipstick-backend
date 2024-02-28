@@ -42,13 +42,7 @@ type User struct {
 }
 
 func (h *UsersRouter) findMe(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		utils.Response(c, err)
@@ -77,13 +71,7 @@ type UpdateValidationErrors struct {
 }
 
 func (h *UsersRouter) updateMe(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		utils.Response(c, err)

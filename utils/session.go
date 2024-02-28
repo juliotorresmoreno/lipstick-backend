@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/juliotorresmoreno/tana-api/db"
 	"github.com/juliotorresmoreno/tana-api/models"
 )
@@ -24,7 +25,11 @@ type Session struct {
 	User  *User  `json:"user"`
 }
 
-func ValidateSession(token string) (*User, error) {
+func ValidateSession(c *gin.Context) (*User, error) {
+	token, err := GetToken(c)
+	if err != nil {
+		return &User{}, StatusUnauthorized
+	}
 	ctx := context.Background()
 	cmd := db.DefaultCache.Get(ctx, "session-"+token)
 	email := cmd.Val()

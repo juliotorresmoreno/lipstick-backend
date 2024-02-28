@@ -37,13 +37,7 @@ type Credential struct {
 }
 
 func (h *CredentialsRouter) find(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		c.JSON(401, gin.H{"message": "Unauthorized"})
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		c.JSON(401, gin.H{"message": "Unauthorized"})
@@ -68,13 +62,7 @@ func (h *CredentialsRouter) find(c *gin.Context) {
 }
 
 func (h *CredentialsRouter) findOne(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		c.JSON(401, gin.H{"message": "Unauthorized"})
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		c.JSON(401, gin.H{"message": "Unauthorized"})
@@ -99,13 +87,7 @@ func (h *CredentialsRouter) findOne(c *gin.Context) {
 }
 
 func (h *CredentialsRouter) create(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		c.JSON(401, gin.H{"message": "Unauthorized"})
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		c.JSON(401, gin.H{"message": "Unauthorized"})
@@ -133,7 +115,7 @@ func (h *CredentialsRouter) create(c *gin.Context) {
 	apiSecret, _ := utils.GenerateRandomString(64)
 
 	credential := &models.Credential{
-		UserId:    session.ID,
+		OwnerId:   session.ID,
 		ApiKey:    uuid.New().String(),
 		ApiSecret: apiSecret,
 	}
@@ -148,13 +130,7 @@ func (h *CredentialsRouter) create(c *gin.Context) {
 }
 
 func (h *CredentialsRouter) delete(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		log.Error("Error getting token", err)
-		c.JSON(401, gin.H{"message": "Unauthorized"})
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		log.Error("Error validating session", err)
 		c.JSON(401, gin.H{"message": "Unauthorized"})
@@ -163,7 +139,8 @@ func (h *CredentialsRouter) delete(c *gin.Context) {
 
 	conn := db.DefaultClient
 
-	tx := conn.Where("user_id = ?", session.ID).Delete(&models.Credential{}, c.Param("id"))
+	tx := conn.Where(&models.Credential{OwnerId: session.ID}).
+		Delete(&models.Credential{}, c.Param("id"))
 	if tx.Error != nil {
 		log.Error("Error deleting credential", tx.Error)
 		utils.Response(c, utils.StatusInternalServerError)

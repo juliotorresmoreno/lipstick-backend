@@ -1,16 +1,19 @@
 package mmlu
 
 import (
-	"errors"
-	"reflect"
+	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator"
 	"github.com/juliotorresmoreno/tana-api/db"
+	"github.com/juliotorresmoreno/tana-api/logger"
 	"github.com/juliotorresmoreno/tana-api/models"
 	"github.com/juliotorresmoreno/tana-api/utils"
 )
 
+var log = logger.SetupLogger()
 var tablename = models.Mmlu{}.TableName()
 
 type MMLURouter struct {
@@ -20,56 +23,235 @@ func SetupAPIRoutes(r *gin.RouterGroup) {
 	ai := &MMLURouter{}
 	r.GET("", ai.find)
 	r.GET("/:id", ai.findOne)
+	r.POST("", ai.create)
+	r.PATCH("/:id", ai.update)
+	r.DELETE("/:id", ai.delete)
+}
+
+type Mmlu struct {
+	ID          uint       `json:"id"`
+	Name        string     `json:"name" validate:"required,max=100"`
+	Description string     `json:"description" validate:"max=256"`
+	PhotoURL    string     `json:"photo_url" validate:"url,max=1000"`
+	CreationAt  time.Time  `json:"creation_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
+}
+
+type MmluValidationErrors struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	PhotoURL    string `json:"photo_url,omitempty"`
+}
+
+func (h *MMLURouter) create(c *gin.Context) {
+	session, err := utils.ValidateSession(c)
+	if err != nil {
+		log.Error("Error validating session", err)
+		c.JSON(401, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	payload := &Mmlu{}
+	err = c.ShouldBind(payload)
+	if err != nil {
+		log.Error("Error binding payload", err)
+		utils.Response(c, utils.StatusBadRequest)
+		return
+	}
+
+	conn := db.DefaultClient
+
+	mmlu := &models.Mmlu{
+		Name:        payload.Name,
+		Description: payload.Description,
+		PhotoURL:    payload.PhotoURL,
+		OwnerId:     session.ID,
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(payload); err != nil {
+		log.Error("Error validating user input", err)
+		errorsMap := make(map[string]string)
+
+		for _, err := range err.(validator.ValidationErrors) {
+			field := err.Field()
+			tag := err.Tag()
+
+			switch tag {
+			case "required":
+				errorsMap[field] = "This field is required!"
+			case "email":
+				errorsMap[field] = "Invalid email format!"
+			case "phone":
+				errorsMap[field] = "Invalid phone number!"
+			default:
+				errorsMap[field] = "Invalid field!"
+			}
+		}
+		customErrors := MmluValidationErrors{
+			Name:        errorsMap["Name"],
+			PhotoURL:    errorsMap["PhotoURL"],
+			Description: errorsMap["Description"],
+		}
+
+		log.Error("Error validating user input", customErrors)
+		c.JSON(http.StatusBadRequest, customErrors)
+		return
+	}
+
+	tx := conn.Create(mmlu)
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		utils.Response(c, utils.StatusInternalServerError)
+		return
+	}
+
+	result := Mmlu{}
+	tx = conn.Table(tablename).Where("id = ?", mmlu.ID).First(&result)
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		utils.Response(c, utils.StatusInternalServerError)
+		return
+	}
+	c.JSON(200, result)
+}
+
+func (h *MMLURouter) update(c *gin.Context) {
+	session, err := utils.ValidateSession(c)
+	if err != nil {
+		log.Error("Error validating session", err)
+		c.JSON(401, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	payload := &Mmlu{}
+	err = c.ShouldBind(payload)
+	if err != nil {
+		utils.Response(c, utils.StatusBadRequest)
+		return
+	}
+
+	conn := db.DefaultClient
+
+	mmlu := &models.Mmlu{
+		Name:        payload.Name,
+		Description: payload.Description,
+		PhotoURL:    payload.PhotoURL,
+		OwnerId:     session.ID,
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(payload); err != nil {
+		log.Error("Error validating user input", err)
+		errorsMap := make(map[string]string)
+
+		for _, err := range err.(validator.ValidationErrors) {
+			field := err.Field()
+			tag := err.Tag()
+
+			switch tag {
+			case "required":
+				errorsMap[field] = "This field is required!"
+			case "email":
+				errorsMap[field] = "Invalid email format!"
+			case "phone":
+				errorsMap[field] = "Invalid phone number!"
+			default:
+				errorsMap[field] = "Invalid field!"
+			}
+		}
+		customErrors := MmluValidationErrors{
+			Name:        errorsMap["Name"],
+			PhotoURL:    errorsMap["PhotoURL"],
+			Description: errorsMap["Description"],
+		}
+		c.JSON(http.StatusBadRequest, customErrors)
+		return
+	}
+
+	id := c.Param("id")
+	tx := conn.Where("id = ?", id).Updates(mmlu)
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		utils.Response(c, utils.StatusInternalServerError)
+		return
+	}
+
+	result := Mmlu{}
+	tx = conn.Table(tablename).Where("id = ?", id).First(&result)
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		utils.Response(c, utils.StatusInternalServerError)
+		return
+	}
+	c.JSON(200, result)
+}
+
+func (h *MMLURouter) delete(c *gin.Context) {
+	session, err := utils.ValidateSession(c)
+	if err != nil {
+		log.Error("Error validating session", err)
+		c.JSON(401, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	conn := db.DefaultClient
+	id := c.Param("id")
+	tx := conn.Where("id = ?", id).
+		Where(&models.Mmlu{
+			OwnerId: session.ID,
+		}).
+		Delete(&models.Mmlu{})
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		utils.Response(c, utils.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Deleted"})
 }
 
 func (h *MMLURouter) find(c *gin.Context) {
-	mmlus := &models.Connections{}
-	err := Find(mmlus)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
-		utils.Response(c, err)
+		log.Error("Error validating session", err)
+		c.JSON(401, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	mmlus := &[]Mmlu{}
+	conn := db.DefaultClient
+	tx := conn.Where("deleted_at is null").Where(&models.Mmlu{OwnerId: session.ID}).
+		Find(mmlus)
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		utils.Response(c, utils.StatusInternalServerError)
 		return
 	}
 	c.JSON(200, mmlus)
 }
 
-func Find(dest interface{}) error {
-	destType := reflect.TypeOf(dest)
-	if destType.Kind() != reflect.Ptr {
-		return errors.New("dest must be a pointer")
-	}
-
-	conn := db.DefaultClient
-
-	if tx := conn.Table(tablename).Find(dest); tx.Error != nil {
-		return utils.StatusInternalServerError
-	}
-
-	return nil
-}
-
 func (h *MMLURouter) findOne(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	mmlu := &models.Connection{}
-	err := FindOne(id, mmlu)
-
+	session, err := utils.ValidateSession(c)
 	if err != nil {
-		utils.Response(c, err)
+		log.Error("Error validating session", err)
+		c.JSON(401, gin.H{"message": "Unauthorized"})
 		return
 	}
 
-	c.JSON(200, mmlu)
-}
-
-func FindOne(id int, dest interface{}) error {
-	destType := reflect.TypeOf(dest)
-	if destType.Kind() != reflect.Ptr {
-		return errors.New("dest must be a pointer")
-	}
-
+	id, _ := strconv.Atoi(c.Param("id"))
+	mmlu := &Mmlu{}
 	conn := db.DefaultClient
-	if tx := conn.Table(tablename).First(dest, "id = ?", id); tx.Error != nil {
-		return utils.StatusInternalServerError
+	tx := conn.Where("deleted_at is null").
+		Where("id = ?", id).
+		Where(&models.Mmlu{
+			OwnerId: session.ID,
+		}).First(mmlu)
+	if tx.Error != nil {
+		log.Error(tx.Error)
+		c.JSON(404, gin.H{"message": "Not found"})
+		return
 	}
-
-	return nil
+	c.JSON(200, mmlu)
 }

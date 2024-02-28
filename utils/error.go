@@ -13,7 +13,7 @@ type HttpResponse struct {
 }
 
 type HttpError struct {
-	Message string
+	Message string `json:"message"`
 }
 
 var StatusInternalServerError = &HttpResponse{
@@ -64,5 +64,6 @@ func Response(c *gin.Context, payload interface{}) {
 	statusValue := statusField.Interface().(int)
 	objValue := objField.Interface()
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(statusValue, objValue)
 }

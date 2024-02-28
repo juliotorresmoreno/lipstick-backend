@@ -105,7 +105,7 @@ type SignInPayload struct {
 func (auth *AuthRouter) SignIn(c *gin.Context) {
 	payload := &SignInPayload{}
 
-	err := c.Bind(payload)
+	err := c.ShouldBind(payload)
 	if err != nil {
 		utils.Response(c, utils.StatusBadRequest)
 		return
@@ -118,13 +118,17 @@ func (auth *AuthRouter) SignIn(c *gin.Context) {
 		user, "email = ?", payload.Email,
 	)
 	if tx.Error != nil {
-		utils.Response(c, utils.StatusInternalServerError)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User or password incorrect",
+		})
 		return
 	}
 
 	ok, err := utils.ComparePassword(payload.Password, user.Password)
 	if !ok || err != nil {
-		utils.Response(c, utils.StatusUnauthorized)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User or password incorrect",
+		})
 		return
 	}
 	user.Password = ""
@@ -149,12 +153,7 @@ func (auth *AuthRouter) SignIn(c *gin.Context) {
 }
 
 func (auth *AuthRouter) Session(c *gin.Context) {
-	token, err := utils.GetToken(c)
-	if err != nil {
-		utils.Response(c, err)
-		return
-	}
-	session, err := utils.ValidateSession(token)
+	session, err := utils.ValidateSession(c)
 	if err != nil {
 		utils.Response(c, err)
 		return
