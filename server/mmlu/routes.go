@@ -33,6 +33,8 @@ type Mmlu struct {
 	Name        string     `json:"name" validate:"required,max=100"`
 	Description string     `json:"description" validate:"max=256"`
 	PhotoURL    string     `json:"photo_url" validate:"url,max=1000"`
+	Model       string     `json:"model" validate:"required,max=100"`
+	Provider    string     `json:"provider" validate:"required,oneof=ollama"`
 	CreationAt  time.Time  `json:"creation_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
@@ -42,6 +44,8 @@ type MmluValidationErrors struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	PhotoURL    string `json:"photo_url,omitempty"`
+	Model       string `json:"model,omitempty"`
+	Provider    string `json:"provider,omitempty"`
 }
 
 func (h *MMLURouter) create(c *gin.Context) {
@@ -66,6 +70,8 @@ func (h *MMLURouter) create(c *gin.Context) {
 		Name:        payload.Name,
 		Description: payload.Description,
 		PhotoURL:    payload.PhotoURL,
+		Provider:    payload.Provider,
+		Model:       payload.Model,
 		OwnerId:     session.ID,
 	}
 
@@ -93,6 +99,8 @@ func (h *MMLURouter) create(c *gin.Context) {
 			Name:        errorsMap["Name"],
 			PhotoURL:    errorsMap["PhotoURL"],
 			Description: errorsMap["Description"],
+			Model:       errorsMap["Model"],
+			Provider:    errorsMap["Provider"],
 		}
 
 		log.Error("Error validating user input", customErrors)

@@ -18,6 +18,12 @@ var applog = logger.SetupLogger()
 var DefaultClient *gorm.DB
 var DefaultCache *redis.Client
 
+func reportError(err error) {
+	if err != nil {
+		applog.Error(err.Error())
+	}
+}
+
 func Setup() {
 	var err error
 	DefaultClient, err = NewClient()
@@ -27,10 +33,10 @@ func Setup() {
 		applog.Panic("Failed conection to database")
 	}
 
-	DefaultClient.AutoMigrate(&models.User{})
-	DefaultClient.AutoMigrate(&models.Mmlu{})
-	DefaultClient.AutoMigrate(&models.Credential{})
-	DefaultClient.AutoMigrate(&models.Connection{})
+	reportError(DefaultClient.AutoMigrate(&models.User{}))
+	reportError(DefaultClient.AutoMigrate(&models.Credential{}))
+	reportError(DefaultClient.AutoMigrate(&models.Mmlu{}))
+	reportError(DefaultClient.AutoMigrate(&models.Connection{}))
 
 	DefaultCache, err = NewRedisClient()
 	if err == nil {
