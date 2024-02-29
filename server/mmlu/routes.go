@@ -32,7 +32,7 @@ type Mmlu struct {
 	ID          uint       `json:"id"`
 	Name        string     `json:"name" validate:"required,max=100"`
 	Description string     `json:"description" validate:"max=256"`
-	PhotoURL    string     `json:"photo_url" validate:"url,max=1000"`
+	PhotoURL    string     `json:"photo_url" validate:"max=1000"`
 	Model       string     `json:"model" validate:"required,max=100"`
 	Provider    string     `json:"provider" validate:"required,oneof=ollama"`
 	CreationAt  time.Time  `json:"creation_at"`

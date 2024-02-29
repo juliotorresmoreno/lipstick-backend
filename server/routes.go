@@ -8,15 +8,17 @@ import (
 	"github.com/juliotorresmoreno/tana-api/server/credentials"
 	"github.com/juliotorresmoreno/tana-api/server/events"
 	"github.com/juliotorresmoreno/tana-api/server/mmlu"
+	"github.com/juliotorresmoreno/tana-api/server/models"
 	"github.com/juliotorresmoreno/tana-api/server/users"
 )
 
 func SetupAPIRoutes(r *gin.RouterGroup) {
 	auth.SetupAPIRoutes(r)
 	mmlu.SetupAPIRoutes(r.Group("/mmlu"))
-	connections.SetupAPIRoutes(r.Group("/connections"))
-	conversation.SetupAPIRoutes(r.Group("/conversation"))
-	events.SetupAPIRoutes(r.Group("/events"))
 	users.SetupAPIRoutes(r.Group("/users"))
+	events.SetupAPIRoutes(r.Group("/events"))
+	models.SetupAPIRoutes(r.Group("/models"))
+	connections.SetupAPIRoutes(r.Group("/connections"))
 	credentials.SetupAPIRoutes(r.Group("/credentials"))
+	conversation.SetupAPIRoutes(r.Group("/conversation"))
 }
