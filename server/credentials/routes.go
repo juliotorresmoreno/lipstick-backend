@@ -19,11 +19,11 @@ type CredentialsRouter struct {
 }
 
 func SetupAPIRoutes(r *gin.RouterGroup) {
-	documents := &CredentialsRouter{}
-	r.GET("", documents.find)
-	r.GET("/:id", documents.findOne)
-	r.POST("/generate", documents.create)
-	r.DELETE("/:id", documents.delete)
+	h := &CredentialsRouter{}
+	r.GET("", h.find)
+	r.GET("/:id", h.findOne)
+	r.POST("/generate", h.create)
+	r.DELETE("/:id", h.delete)
 }
 
 type Credential struct {
@@ -132,7 +132,7 @@ func (h *CredentialsRouter) create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "create credentials"})
+	c.JSON(200, gin.H{"message": "create success"})
 }
 
 func (h *CredentialsRouter) delete(c *gin.Context) {
@@ -153,5 +153,5 @@ func (h *CredentialsRouter) delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "delete credentials"})
+	c.JSON(200, gin.H{"message": "deleted"})
 }

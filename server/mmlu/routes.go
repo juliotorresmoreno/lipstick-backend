@@ -20,12 +20,18 @@ type MMLURouter struct {
 }
 
 func SetupAPIRoutes(r *gin.RouterGroup) {
-	ai := &MMLURouter{}
-	r.GET("", ai.find)
-	r.GET("/:id", ai.findOne)
-	r.POST("", ai.create)
-	r.PATCH("/:id", ai.update)
-	r.DELETE("/:id", ai.delete)
+	h := &MMLURouter{}
+	r.GET("", h.find)
+	r.GET("/:id", h.findOne)
+	r.POST("", h.create)
+	r.PATCH("/:id", h.update)
+	r.DELETE("/:id", h.delete)
+
+	r.GET("/:id/messages", h.findMessages)
+	r.POST("/:id/messages", h.createMessage)
+	r.POST("/:id/messages/attach", h.attachMessage)
+	r.PATCH("/:id/messages/:messageId", h.updateMessage)
+	r.DELETE("/:id/messages/:messageId", h.deleteMessage)
 }
 
 type Mmlu struct {
@@ -115,14 +121,7 @@ func (h *MMLURouter) create(c *gin.Context) {
 		return
 	}
 
-	result := Mmlu{}
-	tx = conn.Table(tablename).Where("id = ?", mmlu.ID).First(&result)
-	if tx.Error != nil {
-		log.Error(tx.Error)
-		utils.Response(c, utils.StatusInternalServerError)
-		return
-	}
-	c.JSON(200, result)
+	c.JSON(200, gin.H{"message": "create success"})
 }
 
 func (h *MMLURouter) update(c *gin.Context) {
@@ -186,14 +185,7 @@ func (h *MMLURouter) update(c *gin.Context) {
 		return
 	}
 
-	result := Mmlu{}
-	tx = conn.Table(tablename).Where("id = ?", id).First(&result)
-	if tx.Error != nil {
-		log.Error(tx.Error)
-		utils.Response(c, utils.StatusInternalServerError)
-		return
-	}
-	c.JSON(200, result)
+	c.JSON(200, gin.H{"message": "update success"})
 }
 
 func (h *MMLURouter) delete(c *gin.Context) {
@@ -217,7 +209,7 @@ func (h *MMLURouter) delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Deleted"})
+	c.JSON(200, gin.H{"message": "deleted"})
 }
 
 func (h *MMLURouter) find(c *gin.Context) {

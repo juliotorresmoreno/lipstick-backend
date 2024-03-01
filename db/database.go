@@ -37,6 +37,7 @@ func Setup() {
 	reportError(DefaultClient.AutoMigrate(&models.Credential{}))
 	reportError(DefaultClient.AutoMigrate(&models.Mmlu{}))
 	reportError(DefaultClient.AutoMigrate(&models.Connection{}))
+	reportError(DefaultClient.AutoMigrate(&models.Message{}))
 
 	DefaultCache, err = NewRedisClient()
 	if err == nil {

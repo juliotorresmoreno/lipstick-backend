@@ -2,7 +2,6 @@ package conversation
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -40,14 +39,6 @@ type AttachPayload struct {
 	Attachment string `json:"attachment"`
 }
 
-func generateRandomFileName(prefix, suffix string) string {
-	b := make([]byte, 16)
-	if _, err := rand.Read(b); err != nil {
-		log.Fatal("Error generating random file name:", err)
-	}
-	return prefix + fmt.Sprintf("%x", b) + suffix
-}
-
 func (h *ConversationRouter) attach(c *gin.Context) {
 	session, err := utils.ValidateSession(c)
 	if err != nil {
@@ -73,7 +64,7 @@ func (h *ConversationRouter) attach(c *gin.Context) {
 
 	if tx.Error != nil {
 		log.Error("Error finding connection", tx.Error)
-		utils.Response(c, utils.StatusInternalServerError)
+		utils.Response(c, utils.StatusNotFound)
 		return
 	}
 
@@ -98,7 +89,7 @@ func (h *ConversationRouter) attach(c *gin.Context) {
 		return
 	}
 
-	fileName := generateRandomFileName("attachment_", ".pdf")
+	fileName := utils.GenerateRandomFileName("attachment_", ".pdf")
 	filePath := filepath.Join(os.TempDir(), fileName)
 
 	// Escribir los bytes decodificados en el archivo.
@@ -109,7 +100,7 @@ func (h *ConversationRouter) attach(c *gin.Context) {
 		return
 	}
 
-	outputName := generateRandomFileName("attachment_", ".txt")
+	outputName := utils.GenerateRandomFileName("attachment_", ".txt")
 	outputPath := filepath.Join(os.TempDir(), outputName)
 
 	err = utils.PDFToText(filePath, outputPath)
@@ -193,7 +184,7 @@ func (h *ConversationRouter) generate(c *gin.Context) {
 	}).First(connection, connectionID)
 	if tx.Error != nil {
 		log.Error("Error finding connection", tx.Error)
-		utils.Response(c, utils.StatusInternalServerError)
+		utils.Response(c, utils.StatusNotFound)
 		return
 	}
 
@@ -249,7 +240,7 @@ func (h *ConversationRouter) findOne(c *gin.Context) {
 	}).First(connection, connectionID)
 	if tx.Error != nil {
 		log.Error("Error finding connection", tx.Error)
-		utils.Response(c, utils.StatusInternalServerError)
+		utils.Response(c, utils.StatusNotFound)
 		return
 	}
 
